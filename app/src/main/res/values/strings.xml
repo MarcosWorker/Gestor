@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Gestor</string>
+    <string name="d_vidas_fixas">Dívidas Fixas:</string>
+    <string name="contas_tributos">Contas / Tributos:</string>
+    <string name="cart_es">Cartões:</string>
+</resources>

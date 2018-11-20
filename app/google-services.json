@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "845032909529",
+    "firebase_url": "https://gestor-ac5f6.firebaseio.com",
+    "project_id": "gestor-ac5f6",
+    "storage_bucket": "gestor-ac5f6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:845032909529:android:95b17b28cfbe0c88",
+        "android_client_info": {
+          "package_name": "com.example.marcosmarques.gestor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "845032909529-5860s76jjp8d0uouhe6dd4cj6f9rg48b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.marcosmarques.gestor",
+            "certificate_hash": "abba21ae3f5e480a66473684a629b173dcdf4c5f"
+          }
+        },
+        {
+          "client_id": "845032909529-due876u0gur17gshr1os1vi8733qqlni.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbS2F_HfZ0p1NU5zsApAEvVgxaiwa3AIg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "845032909529-due876u0gur17gshr1os1vi8733qqlni.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

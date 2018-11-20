@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/add_divida"
+        android:title="Adicionar Dívida" />
+    <item
+        android:id="@+id/add_cartao"
+        android:title="Adicionar Cartão" />
+    <item
+        android:id="@+id/del_divida"
+        android:title="Deletar Dívida" />
+    <item
+        android:id="@+id/del_cartao"
+        android:title="Deletar Cartão" />
+    <item
+        android:id="@+id/sair"
+        android:title="Sair" />
+</menu>
