@@ -22,20 +22,13 @@
                 android:layout_height="wrap_content"
                 android:hint="Cartão"
                 android:inputType="text" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="vencimento:"
-                android:layout_marginTop="16sp"
-                android:textSize="20sp"/>
-            <DatePicker
-                android:id="@+id/vencimento"
+            <EditText
+                android:id="@+id/edt_vencimento"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8sp"
                 android:hint="Vencimento"
-                android:inputType="date" />
+                android:inputType="number" />
 
             <EditText
                 android:id="@+id/edt_limite"
