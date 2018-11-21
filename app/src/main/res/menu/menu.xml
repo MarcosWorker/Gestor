@@ -4,14 +4,11 @@
         android:id="@+id/add_divida"
         android:title="Adicionar Dívida" />
     <item
-        android:id="@+id/add_cartao"
-        android:title="Adicionar Cartão" />
+        android:id="@+id/add_conta"
+        android:title="Adicionar Conta" />
     <item
-        android:id="@+id/del_divida"
-        android:title="Deletar Dívida" />
-    <item
-        android:id="@+id/del_cartao"
-        android:title="Deletar Cartão" />
+        android:id="@+id/pg_conta"
+        android:title="Pagar Conta" />
     <item
         android:id="@+id/sair"
         android:title="Sair" />

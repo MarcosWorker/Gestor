@@ -7,9 +7,8 @@ public class Divida {
 
     private String uid;
     private String titulo;
-    private Boolean cartao;
     private Long numeroParcelas;
-    private Double valor;
+    private Double valorParcelas;
     private String local;
     private String data;
 
@@ -32,14 +31,6 @@ public class Divida {
         this.titulo = titulo;
     }
 
-    public Boolean getCartao() {
-        return cartao;
-    }
-
-    public void setCartao(Boolean cartao) {
-        this.cartao = cartao;
-    }
-
     public Long getNumeroParcelas() {
         return numeroParcelas;
     }
@@ -48,12 +39,12 @@ public class Divida {
         this.numeroParcelas = numeroParcelas;
     }
 
-    public Double getValor() {
-        return valor;
+    public Double getValorParcelas() {
+        return valorParcelas;
     }
 
-    public void setValor(Double valor) {
-        this.valor = valor;
+    public void setValorParcelas(Double valorParcelas) {
+        this.valorParcelas = valorParcelas;
     }
 
     public String getLocal() {

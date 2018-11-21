@@ -11,19 +11,11 @@
         tools:ignore="UselessParent">
 
         <LinearLayout
+            android:id="@+id/layout_home"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16sp">
-
-            <TextView
-                android:id="@+id/dividas"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:textStyle="normal"
-                android:textSize="20sp"
-                android:textColor="#000"
-                />
         </LinearLayout>
     </ScrollView>
 

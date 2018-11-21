@@ -20,7 +20,7 @@
                 android:id="@+id/edt_cartao"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Cartão"
+                android:hint="Conta"
                 android:inputType="text" />
             <EditText
                 android:id="@+id/edt_vencimento"
@@ -34,7 +34,7 @@
                 android:id="@+id/edt_limite"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Limite do cartão"
+                android:hint="Limite da conta"
                 android:inputType="numberDecimal" />
 
             <LinearLayout

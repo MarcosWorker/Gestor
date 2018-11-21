@@ -1,10 +1,11 @@
 package com.example.marcosmarques.gestor.view;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -13,14 +14,15 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.marcosmarques.gestor.R;
-import com.example.marcosmarques.gestor.model.Cartao;
+import com.example.marcosmarques.gestor.model.Conta;
 import com.example.marcosmarques.gestor.model.Divida;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -36,20 +38,26 @@ import java.util.List;
 public class HomeActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
     private DatabaseReference mDatabaseDivida;
-    private DatabaseReference mDatabaseCartao;
-    private List<Cartao> cartoes;
-    private List<String> nomesCartao;
-    private String nomeCartaoSelecionado;
+    private DatabaseReference mDatabaseConta;
+    private List<Conta> contas;
+    private List<String> nomesContas;
+    private String nomeContaSelecionada;
+    private LinearLayout layout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        mDatabaseDivida = FirebaseDatabase.getInstance().getReference("divida");
-        mDatabaseCartao = FirebaseDatabase.getInstance().getReference("cartao");
+        layout = findViewById(R.id.layout_home);
 
-        carregarCartoes();
+        mDatabaseDivida = FirebaseDatabase.getInstance().getReference("divida");
+        mDatabaseConta = FirebaseDatabase.getInstance().getReference("conta");
+
+        contas = new ArrayList<>();
+        nomesContas = new ArrayList<>();
+
+        carregarContas();
 
     }
 
@@ -65,16 +73,21 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.add_divida:
-                addDivida();
+                if (contas.isEmpty()) {
+                    Toast.makeText(this, "Cadastre uma conta primeiro.", Toast.LENGTH_SHORT).show();
+                } else {
+                    addDivida();
+                }
                 return true;
-            case R.id.add_cartao:
+            case R.id.add_conta:
                 addCartao();
                 return true;
-            case R.id.del_divida:
-                delDivida();
-                return true;
-            case R.id.del_cartao:
-                delCartao();
+            case R.id.pg_conta:
+                if (contas.isEmpty()) {
+                    Toast.makeText(this, "Não existe conta para pagar", Toast.LENGTH_SHORT).show();
+                } else {
+                    pagouConta();
+                }
                 return true;
             case R.id.sair:
                 logout();
@@ -101,12 +114,11 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
         final EditText textvalor = dialog.findViewById(R.id.edt_valor);
         final DatePicker data = dialog.findViewById(R.id.data);
         final EditText textParcelas = dialog.findViewById(R.id.edt_parcelas);
-        final CheckBox checkCartao = dialog.findViewById(R.id.check_cartao);
         final Spinner spinnerCartao = dialog.findViewById(R.id.spinner_cartao);
 
-        if (cartoes != null) {
+        if (contas != null) {
             ArrayAdapter<String> dataAdapter = new ArrayAdapter<>(this,
-                    android.R.layout.simple_spinner_item, nomesCartao);
+                    android.R.layout.simple_spinner_item, nomesContas);
             dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinnerCartao.setAdapter(dataAdapter);
             spinnerCartao.setOnItemSelectedListener(this);
@@ -120,17 +132,16 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
                 Divida divida = new Divida();
                 divida.setLocal(textLocal.getText().toString());
                 divida.setTitulo(textDivida.getText().toString());
-                if (textvalor.getText().toString().equals("")) {
-                    divida.setValor(1D);
-                } else {
-                    divida.setValor(Double.valueOf(textvalor.getText().toString()));
-                }
                 divida.setData(data.getDayOfMonth() + "/" + (data.getMonth() + 1) + "/" + data.getYear());
-                divida.setCartao(checkCartao.isChecked());
                 if (textParcelas.getText().toString().equals("")) {
                     divida.setNumeroParcelas(1L);
                 } else {
                     divida.setNumeroParcelas(Long.valueOf(textParcelas.getText().toString()));
+                }
+                if (textvalor.getText().toString().equals("")) {
+                    divida.setValorParcelas(1D);
+                } else {
+                    divida.setValorParcelas((Double.valueOf(textvalor.getText().toString()) / divida.getNumeroParcelas()));
                 }
 
                 if (verificaDivida(divida)) {
@@ -158,7 +169,7 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setCancelable(false);
         dialog.setCanceledOnTouchOutside(false);
-        dialog.setContentView(R.layout.dialog_add_cartao);
+        dialog.setContentView(R.layout.dialog_add_conta);
 
         final EditText textCartao = dialog.findViewById(R.id.edt_cartao);
         final EditText textVencimento = dialog.findViewById(R.id.edt_vencimento);
@@ -169,12 +180,12 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
             @Override
             public void onClick(View v) {
 
-                Cartao cartao = new Cartao();
-                cartao.setNome(textCartao.getText().toString());
-                cartao.setLimite(Double.valueOf(textLimite.getText().toString()));
-                cartao.setVencimento(textVencimento.getText().toString());
+                Conta conta = new Conta();
+                conta.setNome(textCartao.getText().toString());
+                conta.setLimite(Double.valueOf(textLimite.getText().toString()));
+                conta.setVencimento(textVencimento.getText().toString());
 
-                salvarCartaoFirebase(cartao);
+                salvarCartaoFirebase(conta);
 
                 dialog.dismiss();
             }
@@ -192,13 +203,6 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
 
     }
 
-    private void delDivida() {
-
-    }
-
-    private void delCartao() {
-
-    }
 
     private boolean verificaDivida(Divida divida) {
         if (divida.getTitulo() == null || divida.getTitulo().equals("")) {
@@ -210,7 +214,7 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
         } else if (divida.getLocal() == null || divida.getLocal().equals("")) {
             Toast.makeText(this, "Preencha o local da dívida!", Toast.LENGTH_SHORT).show();
             return false;
-        } else if (divida.getValor() == null) {
+        } else if (divida.getValorParcelas() == null) {
             Toast.makeText(this, "Preencha o valor da dívida!", Toast.LENGTH_SHORT).show();
             return false;
         } else if (divida.getNumeroParcelas() == null) {
@@ -221,28 +225,28 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     }
 
-    private boolean verificarCartao(Cartao cartao) {
-        if (cartao.getNome() == null || cartao.getNome().equals("")) {
-            Toast.makeText(this, "Preencha o nome do cartão!", Toast.LENGTH_SHORT).show();
+    private boolean verificarConta(Conta conta) {
+        if (conta.getNome() == null || conta.getNome().equals("")) {
+            Toast.makeText(this, "Preencha o nome da conta!", Toast.LENGTH_SHORT).show();
             return false;
-        } else if (verificaDuplicidadeCartao(cartao.getNome())) {
-            Toast.makeText(this, "Esse cartão já existe!", Toast.LENGTH_SHORT).show();
+        } else if (verificaDuplicidadeConta(conta.getNome())) {
+            Toast.makeText(this, "Essa conta já existe!", Toast.LENGTH_SHORT).show();
             return false;
-        } else if (cartao.getLimite() == null) {
-            Toast.makeText(this, "Preencha a limite do cartão!", Toast.LENGTH_SHORT).show();
+        } else if (conta.getLimite() == null) {
+            Toast.makeText(this, "Preencha a limite da conta!", Toast.LENGTH_SHORT).show();
             return false;
-        } else if (cartao.getVencimento() == null) {
-            Toast.makeText(this, "Preencha o vencimento do cartão!", Toast.LENGTH_SHORT).show();
+        } else if (conta.getVencimento() == null) {
+            Toast.makeText(this, "Preencha o vencimento da conta!", Toast.LENGTH_SHORT).show();
             return false;
         } else {
             return true;
         }
     }
 
-    private boolean verificaDuplicidadeCartao(String nome) {
+    private boolean verificaDuplicidadeConta(String nome) {
         int achou = 0;
-        for (Cartao cartao : cartoes) {
-            if (nome.equals(cartao.getNome())) {
+        for (Conta conta : contas) {
+            if (nome.equals(conta.getNome())) {
                 achou = 1;
             }
         }
@@ -253,59 +257,58 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
 
         divida.setUid(mDatabaseDivida.push().getKey());
 
-        if (divida.getCartao()) {
-            inserirDividaNoCartaoFirebase(divida);
-        } else {
-            mDatabaseDivida.child(divida.getUid()).setValue(divida);
-        }
+        inserirDividaNaContaFirebase(divida);
     }
 
-    private void inserirDividaNoCartaoFirebase(Divida divida) {
+    private void inserirDividaNaContaFirebase(Divida divida) {
 
-        if (nomeCartaoSelecionado == null) {
-            Toast.makeText(this, "Selecione um cartão", Toast.LENGTH_SHORT).show();
+        if (nomeContaSelecionada == null) {
+            Toast.makeText(this, "Selecione uma conta", Toast.LENGTH_SHORT).show();
         } else {
-            for (Cartao cartao : cartoes) {
-                if (cartao.getNome().equals(nomeCartaoSelecionado)) {
-                    if (cartao.getDividas() == null) {
+            for (Conta conta : contas) {
+                if (conta.getNome().equals(nomeContaSelecionada)) {
+                    if (conta.getDividas() == null) {
                         List<Divida> dividas = new ArrayList<>();
                         dividas.add(divida);
-                        cartao.setDividas(dividas);
+                        conta.setDividas(dividas);
                     } else {
-                        cartao.getDividas().add(divida);
+                        conta.getDividas().add(divida);
                     }
-                    mDatabaseCartao.child(cartao.getUid()).setValue(cartao);
-                    Log.i("Atualizar Cartão - ", "OK -");
+                    mDatabaseConta.child(conta.getUid()).setValue(conta);
+                    Toast.makeText(this, "Dívida inserida com sucesso!", Toast.LENGTH_SHORT).show();
+                    carregarContas();
                 }
             }
         }
 
     }
 
-    private void salvarCartaoFirebase(Cartao cartao) {
-        if (verificarCartao(cartao)) {
-            cartao.setUid(mDatabaseCartao.push().getKey());
-            mDatabaseCartao.child(cartao.getUid()).setValue(cartao);
-            Toast.makeText(this, "Cartão inserido com sucesso!", Toast.LENGTH_SHORT).show();
+    private void salvarCartaoFirebase(Conta conta) {
+        if (verificarConta(conta)) {
+            conta.setUid(mDatabaseConta.push().getKey());
+            mDatabaseConta.child(conta.getUid()).setValue(conta);
+            Toast.makeText(this, "Conta inserida com sucesso!", Toast.LENGTH_SHORT).show();
+            carregarContas();
         }
     }
 
-    private void carregarCartoes() {
-        mDatabaseCartao.addValueEventListener(new ValueEventListener() {
+    private void carregarContas() {
+        mDatabaseConta.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
 
-                cartoes = new ArrayList<>();
-                nomesCartao = new ArrayList<>();
-                cartoes.clear();
+                contas.clear();
+                nomesContas.clear();
 
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Cartao cartao = dataSnapshot.getValue(Cartao.class);
-                    cartoes.add(cartao);
-                    nomesCartao.add(cartao.getNome());
+                    Conta conta = dataSnapshot.getValue(Conta.class);
+                    contas.add(conta);
+                    assert conta != null;
+                    nomesContas.add(conta.getNome());
                 }
 
-                Collections.reverse(cartoes);
+                Collections.reverse(contas);
+                relatorio();
             }
 
             @Override
@@ -315,10 +318,130 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
         });
     }
 
+
+    private void relatorio() {
+
+        layout.removeAllViews();
+
+        TextView tituloConta = new TextView(this);
+        tituloConta.setText("Contas :");
+        tituloConta.setTextSize(20);
+        tituloConta.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
+        layout.addView(tituloConta);
+
+        for (final Conta conta : contas) {
+            TextView linha = new TextView(this);
+            linha.setText(" - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ");
+            linha.setTextColor(getResources().getColor(R.color.colorDivisor));
+            layout.addView(linha);
+
+            TextView titulo = new TextView(this);
+            titulo.setText(conta.getNome());
+            titulo.setTextSize(20);
+            titulo.setTextColor(getResources().getColor(R.color.colorTexto));
+            layout.addView(titulo);
+
+            TextView vencimento = new TextView(this);
+            vencimento.setText("Dia do vencimento : " + conta.getVencimento());
+            vencimento.setTextColor(getResources().getColor(R.color.colorTexto));
+            layout.addView(vencimento);
+
+            if (conta.getDividas() == null) {
+                TextView semDividas = new TextView(this);
+                semDividas.setText("Não existem débitos nessa conta.");
+                layout.addView(semDividas);
+            } else {
+                for (Divida divida : conta.getDividas()) {
+
+                    TextView linha2 = new TextView(this);
+                    linha2.setText(" - - - - - - - - - - - - - - - - - - - ");
+                    linha2.setTextColor(getResources().getColor(R.color.colorDivisor));
+                    layout.addView(linha2);
+
+                    TextView tituloDivida = new TextView(this);
+                    tituloDivida.setText(divida.getTitulo());
+                    layout.addView(tituloDivida);
+
+                    TextView localDivida = new TextView(this);
+                    localDivida.setText("Local : " + divida.getLocal());
+                    layout.addView(localDivida);
+
+                    TextView dataDivida = new TextView(this);
+                    dataDivida.setText("Data : " + divida.getData());
+                    layout.addView(dataDivida);
+
+                    TextView valorParcela = new TextView(this);
+                    valorParcela.setText("R$ " + String.format("%.2f", divida.getValorParcelas()));
+                    layout.addView(valorParcela);
+
+                    TextView parcelas = new TextView(this);
+                    parcelas.setText("Faltam " + divida.getNumeroParcelas() + " Parcela(s)");
+                    layout.addView(parcelas);
+                }
+            }
+        }
+    }
+
+    private void pagouConta() {
+
+        final CharSequence[] listContas = new CharSequence[contas.size()];
+        final List<String> contasSelecionadas = new ArrayList<>();
+        //contas.stream().map(Conta::getNome).forEach(listContas::add);
+        for (int i = 0; i < contas.size(); i++) {
+            listContas[i] = contas.get(i).getNome();
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setTitle("Pagar Conta")
+                .setMultiChoiceItems(listContas, null,
+                        new DialogInterface.OnMultiChoiceClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which,
+                                                boolean isChecked) {
+                                if (isChecked) {
+                                    contasSelecionadas.add(String.valueOf(listContas[which]));
+                                } else if (contasSelecionadas.contains(String.valueOf(listContas[which]))) {
+                                    contasSelecionadas.remove(which);
+                                }
+                            }
+                        })
+                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        for (Conta conta : contas) {
+                            if (contasSelecionadas.contains(conta.getNome())) {
+                                for (Divida divida : conta.getDividas()) {
+                                    if (divida.getNumeroParcelas() > 1) {
+                                        divida.setNumeroParcelas((divida.getNumeroParcelas() - 1));
+                                    } else {
+                                        mDatabaseConta.child(conta.getUid()).child("dividas").child(divida.getUid()).removeValue();
+                                    }
+                                }
+                                mDatabaseConta.child(conta.getUid()).setValue(conta);
+                            }
+                        }
+
+                        Toast.makeText(HomeActivity.this, "Contas atualizadas", Toast.LENGTH_SHORT).show();
+                        carregarContas();
+                    }
+                })
+                .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+
+                    }
+                });
+
+        builder.create();
+        builder.show();
+    }
+
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
-        nomeCartaoSelecionado = parent.getItemAtPosition(position).toString();
+        nomeContaSelecionada = parent.getItemAtPosition(position).toString();
     }
 
     @Override

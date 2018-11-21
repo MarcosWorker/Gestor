@@ -5,7 +5,7 @@ import com.google.firebase.database.IgnoreExtraProperties;
 import java.util.List;
 
 @IgnoreExtraProperties
-public class Cartao {
+public class Conta {
 
     private String uid;
     private String nome;
@@ -13,7 +13,7 @@ public class Cartao {
     private List<Divida> dividas;
     private Double limite;
 
-    public Cartao() {
+    public Conta() {
     }
 
     public String getUid() {
