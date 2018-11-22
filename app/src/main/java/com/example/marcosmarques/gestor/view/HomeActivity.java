@@ -1,8 +1,8 @@
 package com.example.marcosmarques.gestor.view;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -125,40 +125,32 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
         }
 
         Button salvarDivida = dialog.findViewById(R.id.salvar_divida);
-        salvarDivida.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        salvarDivida.setOnClickListener(v -> {
 
-                Divida divida = new Divida();
-                divida.setLocal(textLocal.getText().toString());
-                divida.setTitulo(textDivida.getText().toString());
-                divida.setData(data.getDayOfMonth() + "/" + (data.getMonth() + 1) + "/" + data.getYear());
-                if (textParcelas.getText().toString().equals("")) {
-                    divida.setNumeroParcelas(1L);
-                } else {
-                    divida.setNumeroParcelas(Long.valueOf(textParcelas.getText().toString()));
-                }
-                if (textvalor.getText().toString().equals("")) {
-                    divida.setValorParcelas(1D);
-                } else {
-                    divida.setValorParcelas((Double.valueOf(textvalor.getText().toString()) / divida.getNumeroParcelas()));
-                }
-
-                if (verificaDivida(divida)) {
-                    salvarDividaFirebase(divida);
-                }
-
-                dialog.dismiss();
+            Divida divida = new Divida();
+            divida.setLocal(textLocal.getText().toString());
+            divida.setTitulo(textDivida.getText().toString());
+            divida.setData(data.getDayOfMonth() + "/" + (data.getMonth() + 1) + "/" + data.getYear());
+            if (textParcelas.getText().toString().equals("")) {
+                divida.setNumeroParcelas(1L);
+            } else {
+                divida.setNumeroParcelas(Long.valueOf(textParcelas.getText().toString()));
             }
+            if (textvalor.getText().toString().equals("")) {
+                divida.setValorParcelas(1D);
+            } else {
+                divida.setValorParcelas((Double.valueOf(textvalor.getText().toString()) / divida.getNumeroParcelas()));
+            }
+
+            if (verificaDivida(divida)) {
+                salvarDividaFirebase(divida);
+            }
+
+            dialog.dismiss();
         });
 
         Button cancelarDivida = dialog.findViewById(R.id.cancelar_divida);
-        cancelarDivida.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
+        cancelarDivida.setOnClickListener(v -> dialog.dismiss());
 
         dialog.show();
 
@@ -176,28 +168,20 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
         final EditText textLimite = dialog.findViewById(R.id.edt_limite);
 
         Button salvarCartao = dialog.findViewById(R.id.salvar_cartao);
-        salvarCartao.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        salvarCartao.setOnClickListener(v -> {
 
-                Conta conta = new Conta();
-                conta.setNome(textCartao.getText().toString());
-                conta.setLimite(Double.valueOf(textLimite.getText().toString()));
-                conta.setVencimento(textVencimento.getText().toString());
+            Conta conta = new Conta();
+            conta.setNome(textCartao.getText().toString());
+            conta.setLimite(Double.valueOf(textLimite.getText().toString()));
+            conta.setVencimento(textVencimento.getText().toString());
 
-                salvarCartaoFirebase(conta);
+            salvarCartaoFirebase(conta);
 
-                dialog.dismiss();
-            }
+            dialog.dismiss();
         });
 
         Button cancelarCartao = dialog.findViewById(R.id.cancelar_cartao);
-        cancelarCartao.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
+        cancelarCartao.setOnClickListener(v -> dialog.dismiss());
 
         dialog.show();
 
@@ -319,31 +303,33 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
 
+    @SuppressLint({"SetTextI18n", "DefaultLocale"})
     private void relatorio() {
 
         layout.removeAllViews();
+        Double total = 0.0;
 
         TextView tituloConta = new TextView(this);
         tituloConta.setText("Contas :");
         tituloConta.setTextSize(20);
-        tituloConta.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
+        tituloConta.setTextColor(getResources().getColor(R.color.colorPrimaryDark, null));
         layout.addView(tituloConta);
 
         for (final Conta conta : contas) {
             TextView linha = new TextView(this);
             linha.setText(" - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ");
-            linha.setTextColor(getResources().getColor(R.color.colorDivisor));
+            linha.setTextColor(getResources().getColor(R.color.colorDivisor, null));
             layout.addView(linha);
 
             TextView titulo = new TextView(this);
             titulo.setText(conta.getNome());
             titulo.setTextSize(20);
-            titulo.setTextColor(getResources().getColor(R.color.colorTexto));
+            titulo.setTextColor(getResources().getColor(R.color.colorTexto, null));
             layout.addView(titulo);
 
             TextView vencimento = new TextView(this);
             vencimento.setText("Dia do vencimento : " + conta.getVencimento());
-            vencimento.setTextColor(getResources().getColor(R.color.colorTexto));
+            vencimento.setTextColor(getResources().getColor(R.color.colorTexto, null));
             layout.addView(vencimento);
 
             if (conta.getDividas() == null) {
@@ -355,7 +341,7 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
 
                     TextView linha2 = new TextView(this);
                     linha2.setText(" - - - - - - - - - - - - - - - - - - - ");
-                    linha2.setTextColor(getResources().getColor(R.color.colorDivisor));
+                    linha2.setTextColor(getResources().getColor(R.color.colorDivisor, null));
                     layout.addView(linha2);
 
                     TextView tituloDivida = new TextView(this);
@@ -377,9 +363,28 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
                     TextView parcelas = new TextView(this);
                     parcelas.setText("Faltam " + divida.getNumeroParcelas() + " Parcela(s)");
                     layout.addView(parcelas);
+
+                    //interar total
+
+                    total = total + divida.getValorParcelas();
                 }
             }
         }
+
+        TextView linhaTotal = new TextView(this);
+        linhaTotal.setText(" - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ");
+        linhaTotal.setTextColor(getResources().getColor(R.color.colorDivisor, null));
+        layout.addView(linhaTotal);
+
+        TextView tituloTotal = new TextView(this);
+        tituloTotal.setText("Total do mês :");
+        tituloTotal.setTextSize(20);
+        tituloTotal.setTextColor(getResources().getColor(R.color.colorPrimaryDark, null));
+        layout.addView(tituloTotal);
+
+        TextView valorTotal = new TextView(this);
+        valorTotal.setText("R$ " + String.valueOf(String.format("%.2f", total)));
+        layout.addView(valorTotal);
     }
 
     private void pagouConta() {
@@ -395,43 +400,39 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
 
         builder.setTitle("Pagar Conta")
                 .setMultiChoiceItems(listContas, null,
-                        new DialogInterface.OnMultiChoiceClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which,
-                                                boolean isChecked) {
-                                if (isChecked) {
-                                    contasSelecionadas.add(String.valueOf(listContas[which]));
-                                } else if (contasSelecionadas.contains(String.valueOf(listContas[which]))) {
-                                    contasSelecionadas.remove(which);
-                                }
+                        (dialog, which, isChecked) -> {
+                            if (isChecked) {
+                                contasSelecionadas.add(String.valueOf(listContas[which]));
+                            } else if (contasSelecionadas.contains(String.valueOf(listContas[which]))) {
+                                contasSelecionadas.remove(which);
                             }
                         })
-                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
+                .setPositiveButton("Ok", (dialog, id) -> {
 
-                        for (Conta conta : contas) {
-                            if (contasSelecionadas.contains(conta.getNome())) {
-                                for (Divida divida : conta.getDividas()) {
-                                    if (divida.getNumeroParcelas() > 1) {
-                                        divida.setNumeroParcelas((divida.getNumeroParcelas() - 1));
-                                    } else {
-                                        mDatabaseConta.child(conta.getUid()).child("dividas").child(divida.getUid()).removeValue();
-                                    }
+                    for (Conta conta : contas) {
+                        if (contasSelecionadas.contains(conta.getNome())) {
+                            List<Divida> dividasExcluidas = new ArrayList<>();
+                            for (Divida divida : conta.getDividas()) {
+                                if (divida.getNumeroParcelas() > 1) {
+                                    divida.setNumeroParcelas((divida.getNumeroParcelas() - 1));
+                                } else {
+                                    dividasExcluidas.add(divida);
                                 }
-                                mDatabaseConta.child(conta.getUid()).setValue(conta);
                             }
+                            for (Divida dividaExculida : dividasExcluidas) {
+                                conta.getDividas().remove(dividaExculida);
+                            }
+                            //atualiza conta no firebase
+                            mDatabaseConta.child(conta.getUid()).setValue(conta);
+                            dividasExcluidas.clear();
                         }
-
-                        Toast.makeText(HomeActivity.this, "Contas atualizadas", Toast.LENGTH_SHORT).show();
-                        carregarContas();
                     }
+
+                    Toast.makeText(HomeActivity.this, "Contas atualizadas", Toast.LENGTH_SHORT).show();
+                    carregarContas();
                 })
-                .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
+                .setNegativeButton("Cancelar", (dialog, id) -> {
 
-                    }
                 });
 
         builder.create();
