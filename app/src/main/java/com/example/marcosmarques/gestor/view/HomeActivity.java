@@ -172,10 +172,15 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
 
             Conta conta = new Conta();
             conta.setNome(textCartao.getText().toString());
-            conta.setLimite(Double.valueOf(textLimite.getText().toString()));
+            if (textLimite.getText().toString().equals("")) {
+                conta.setLimite(0D);
+            } else {
+                conta.setLimite(Double.valueOf(textLimite.getText().toString()));
+            }
+
             conta.setVencimento(textVencimento.getText().toString());
 
-            salvarCartaoFirebase(conta);
+            salvarContaFirebase(conta);
 
             dialog.dismiss();
         });
@@ -217,7 +222,7 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
             Toast.makeText(this, "Essa conta já existe!", Toast.LENGTH_SHORT).show();
             return false;
         } else if (conta.getLimite() == null) {
-            Toast.makeText(this, "Preencha a limite da conta!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Preencha o limite da conta!", Toast.LENGTH_SHORT).show();
             return false;
         } else if (conta.getVencimento() == null) {
             Toast.makeText(this, "Preencha o vencimento da conta!", Toast.LENGTH_SHORT).show();
@@ -267,7 +272,7 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
 
     }
 
-    private void salvarCartaoFirebase(Conta conta) {
+    private void salvarContaFirebase(Conta conta) {
         if (verificarConta(conta)) {
             conta.setUid(mDatabaseConta.push().getKey());
             mDatabaseConta.child(conta.getUid()).setValue(conta);
@@ -308,6 +313,7 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
 
         layout.removeAllViews();
         Double total = 0.0;
+        Double totalParcelado = 0.0;
 
         TextView tituloConta = new TextView(this);
         tituloConta.setText("Contas :");
@@ -331,6 +337,11 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
             vencimento.setText("Dia do vencimento : " + conta.getVencimento());
             vencimento.setTextColor(getResources().getColor(R.color.colorTexto, null));
             layout.addView(vencimento);
+
+            TextView limite = new TextView(this);
+            limite.setText("Limite : R$ " + String.format("%.2f", (conta.getLimite() - fatorLimite(conta.getDividas()))));
+            limite.setTextColor(getResources().getColor(R.color.colorTexto, null));
+            layout.addView(limite);
 
             if (conta.getDividas() == null) {
                 TextView semDividas = new TextView(this);
@@ -364,9 +375,14 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
                     parcelas.setText("Faltam " + divida.getNumeroParcelas() + " Parcela(s)");
                     layout.addView(parcelas);
 
-                    //interar total
+                    //interar totais
 
-                    total = total + divida.getValorParcelas();
+                    if (divida.getNumeroParcelas() > 1) {
+                        totalParcelado = totalParcelado + divida.getValorParcelas();
+                    } else {
+                        total = total + divida.getValorParcelas();
+                    }
+
                 }
             }
         }
@@ -377,7 +393,7 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
         layout.addView(linhaTotal);
 
         TextView tituloTotal = new TextView(this);
-        tituloTotal.setText("Total do mês :");
+        tituloTotal.setText("Total de contas :");
         tituloTotal.setTextSize(20);
         tituloTotal.setTextColor(getResources().getColor(R.color.colorPrimaryDark, null));
         layout.addView(tituloTotal);
@@ -385,13 +401,27 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
         TextView valorTotal = new TextView(this);
         valorTotal.setText("R$ " + String.valueOf(String.format("%.2f", total)));
         layout.addView(valorTotal);
+
+        TextView linhaTotalParcelado = new TextView(this);
+        linhaTotalParcelado.setText(" - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ");
+        linhaTotalParcelado.setTextColor(getResources().getColor(R.color.colorDivisor, null));
+        layout.addView(linhaTotalParcelado);
+
+        TextView tituloTotalParcelado = new TextView(this);
+        tituloTotalParcelado.setText("Total Parcelados :");
+        tituloTotalParcelado.setTextSize(20);
+        tituloTotalParcelado.setTextColor(getResources().getColor(R.color.colorPrimaryDark, null));
+        layout.addView(tituloTotalParcelado);
+
+        TextView valorTotalParcelado = new TextView(this);
+        valorTotalParcelado.setText("R$ " + String.valueOf(String.format("%.2f", totalParcelado)));
+        layout.addView(valorTotalParcelado);
     }
 
     private void pagouConta() {
 
         final CharSequence[] listContas = new CharSequence[contas.size()];
         final List<String> contasSelecionadas = new ArrayList<>();
-        //contas.stream().map(Conta::getNome).forEach(listContas::add);
         for (int i = 0; i < contas.size(); i++) {
             listContas[i] = contas.get(i).getNome();
         }
@@ -437,6 +467,19 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
 
         builder.create();
         builder.show();
+    }
+
+    private Double fatorLimite(List<Divida> dividas) {
+
+        Double total = 0.0D;
+
+        if (dividas != null) {
+            for (Divida divida : dividas) {
+                total = total + (divida.getValorParcelas() * divida.getNumeroParcelas());
+            }
+        }
+
+        return total;
     }
 
     @Override
